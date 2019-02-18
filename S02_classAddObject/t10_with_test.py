@@ -3,6 +3,7 @@
 通过__enter__和__exit__两个魔法方式实现；
 """
 
+
 class Sample:
     def __enter__(self):
         print("enter")
