@@ -25,3 +25,5 @@ print(my_dict)
 my_dict = defaultdict(dict)
 my_value = my_dict["haha"]
 print(my_dict)
+
+# TODO: __missing__魔法函数
