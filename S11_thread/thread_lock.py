@@ -4,7 +4,7 @@
 # @Contact: yanshugang11@163.com
 # @Time: 2019/3/13 上午11:57
 """
-保证三个任务按顺序执行
+使用lock实现线程间同步，保证三个任务按顺序执行
 """
 from threading import Thread, Lock
 from time import sleep
