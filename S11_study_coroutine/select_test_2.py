@@ -1,4 +1,12 @@
-# 使用select完成http请求
+"""
+通过select实现http请求
+
+1、epoll并不代表一定比select好
+    在高并发的情况下，连接活跃度不是很高，epoll比select好
+    在并发性不高，同时连接很活跃的情况下，select比epoll好
+"""
+
+# TODO: 没听懂，代码异常
 import socket
 from selectors import DefaultSelector, EVENT_READ, EVENT_WRITE
 from urllib.parse import urlparse
@@ -8,24 +16,21 @@ selector = DefaultSelector()
 
 class Fetcher:
     def connected(self, key):
-        selector.unregister(key.fd)
+        selector.unregister(key.fd)  # 取消注册
         self.client.send(
             "GET {} HTTP/1.1 \r\nHost:{}\r\nConnection:close\r\n\r\n".format(self.path, self.host).encode('utf-8'))
-        selector.register(self.client.fileno(), EVENT_READ, self.readable())
+        selector.register(self.client.fileno(), EVENT_READ, self.readable)
 
     def readable(self, key):
-
-        while True:
-            d = self.client.recv(1024)
-            if d:
-                self.data += d
-            else:
-                selector.unregister(key.fd)
-
-        data = self.data.decode("utf-8")
-        html_data = data.split("\r\n\r\b")[1]
-        print(html_data)
-        self.client.close()
+        d = self.client.recv(1024)
+        if d:
+            self.data += d
+        else:
+            selector.unregister(key.fd)
+            data = self.data.decode("utf-8")
+            html_data = data.split("\r\n\r\n")[1]
+            print(html_data)
+            self.client.close()
 
     def get_url(self, url):
         url = urlparse(url)
@@ -37,6 +42,7 @@ class Fetcher:
 
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.client.setblocking(False)
+
         try:
             self.client.connect((self.host, 80))
         except BlockingIOError as e:
@@ -54,7 +60,7 @@ def loop():
         for key, mask in ready:
             call_back = key.data
             call_back(key)
-    # 模式：回调+事件循环+select(poll/epoll)
+            # 模式：回调+事件循环+select(poll/epoll)
 
 
 if __name__ == '__main__':
