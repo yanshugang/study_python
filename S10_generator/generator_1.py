@@ -8,6 +8,7 @@
 """
 生成器：next、send
 """
+from collections.abc import Generator
 
 
 # 生成器函数：只要有yield，就是生成器函数。
@@ -22,6 +23,7 @@ def func():
 
 if __name__ == '__main__':
     gen = gen_func()  # 返回生成器对象
+    print(isinstance(gen, Generator))
     for v in gen:
         print(v)
         # re = func()  # 返回结果值
