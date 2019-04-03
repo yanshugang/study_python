@@ -34,6 +34,7 @@ def middle(key):
         print(key + "销量统计完成！")
 
 
+# 调用方
 def main():
     data_sets = {"Olay牌面膜": [1200, 1500, 3000],
                  "Olay牌手机": [28, 55, 98, 108],
