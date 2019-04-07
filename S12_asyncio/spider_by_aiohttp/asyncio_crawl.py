@@ -15,20 +15,27 @@ from pyquery import PyQuery
 stopping = False
 start_url = "http://www.jobbole.com/"
 waitting_urls = []
-seen_urls = set()  # 对于大数据量(上亿条),需要使用布隆过滤器
+seen_urls = set()  # 已经爬取的url。对于大数据量(上亿条),set无法完成去重，需要使用布隆过滤器。
+
+# 设置并发度
+sem = asyncio.Semaphore(3)
 
 
+# 定义一个协程
 async def fetch(url, session):
-    try:
-        async with session.get(url) as resp:
-            print(resp.status)
-            if resp.status in [200, 201]:
-                data = await resp.text()
-                return data
-    except Exception as e:
-        print(e)
+    async with sem:
+        await asyncio.sleep(1)
+        try:
+            async with session.get(url) as resp:
+                print(resp.status)
+                if resp.status in [200, 201]:
+                    data = await resp.text()
+                    return data
+        except Exception as e:
+            print(e)
 
 
+# 从返回的html中解析出url
 def extract_urls(html):
     urls = []
     pq = PyQuery(html)
@@ -38,11 +45,10 @@ def extract_urls(html):
             urls.append(url)
             waitting_urls.append(url)
 
-    return urls
 
-
-async def init_urls(url):
-    html = await fetch(url)
+async def init_urls(url, session):
+    html = await fetch(url, session)
+    seen_urls.add(url)
     extract_urls(html)
 
 
@@ -60,7 +66,7 @@ async def consumer(pool):
                     asyncio.ensure_future(article_handler(url, session, pool))
             else:
                 if url not in seen_urls:
-                    asyncio.ensure_future(init_urls(url))
+                    asyncio.ensure_future(init_urls(url, session))
 
 
 async def article_handler(url, session, pool):
@@ -83,7 +89,12 @@ async def main(loop):
                                       user='root', password='',
                                       db='mysql', loop=loop,
                                       charset='utf8', autocommit=True)
-    asyncio.ensure_future(init_urls(start_url))
+    # 初始化urls
+    async with aiohttp.ClientSession() as session:
+        html = await fetch(start_url, session)
+        seen_urls.add(start_url)
+        extract_urls(html)
+
     asyncio.ensure_future(consumer(pool))
 
 
