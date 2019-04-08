@@ -41,8 +41,8 @@ def extract_urls(html):
     return urls
 
 
-async def init_urls(url):
-    html = await fetch(url)
+async def init_urls(url, session):
+    html = await fetch(url, session)
     extract_urls(html)
 
 
