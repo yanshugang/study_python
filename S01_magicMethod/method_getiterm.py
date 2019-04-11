@@ -15,3 +15,4 @@ company = Company(["tom", "bob", "jane"])
 
 for em in company:
     print(em)
+
