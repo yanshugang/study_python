@@ -27,12 +27,38 @@ def fib2(index):
 
 
 def fib3(index):
-    """yield实现"""
+    """生成器实现"""
     n, a, b = 0, 0, 1
     while n < index:
         yield b
         a, b = b, a + b
         n += 1
+
+
+"""
+生成器读大文件:（500G，只有一行，分隔符：{|}）
+"""
+
+
+def myreadlines(f, newline):
+    buf = ""
+    while True:
+        while newline in buf:
+            pos = buf.index(newline)
+            yield buf[:pos]
+            buf = buf[pos + len(newline):]
+        chunk = f.read(4096 * 10)  # 只读取4096个字符
+
+        if not chunk:
+            yield buf
+            break
+        buf += chunk
+
+
+with open("./input.txt") as f:
+    for line in myreadlines(f, "{|}"):
+        print(line)
+
 
 
 if __name__ == '__main__':
