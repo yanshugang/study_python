@@ -1,6 +1,5 @@
 """
-asyncio没有提供http协议的接口
-so,自己实现
+asyncio没有提供http协议的接口，可以使用aiohttp
 """
 
 import asyncio
@@ -22,6 +21,7 @@ async def get_url(url):
     writer.write("GET {} HTTP/1.1 \r\n Host:{}\r\nConnection:close\r\n\r\n".format(path, host).encode("utf-8"))
 
     all_lines = []
+    # async for: 将for循环读数据的方法 异步化。
     async for raw_line in reader:
         data = raw_line.decode("utf-8")
         all_lines.append(data)
