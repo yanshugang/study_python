@@ -14,8 +14,8 @@ from pyquery import PyQuery
 
 stopping = False
 start_url = "http://www.jobbole.com/"
-waitting_urls = []
-seen_urls = set()  # 已经爬取的url。对于大数据量(上亿条),set无法完成去重，需要使用布隆过滤器。
+waitting_urls = []  # 等待爬取的url
+seen_urls = set()  # 已经爬取的url。对于大数据量(上亿条),set无法完成去重，需要使用 todo：布隆过滤器。
 
 # 设置并发度
 sem = asyncio.Semaphore(3)
@@ -27,7 +27,6 @@ async def fetch(url, session):
         await asyncio.sleep(1)
         try:
             async with session.get(url) as resp:
-                print(resp.status)
                 if resp.status in [200, 201]:
                     data = await resp.text()
                     return data
@@ -35,26 +34,26 @@ async def fetch(url, session):
             print(e)
 
 
-# 从返回的html中解析出url
 def extract_urls(html):
-    urls = []
+    """从返回的html中及解析出新的url"""
     pq = PyQuery(html)
     for link in pq.items("a"):
         url = link.attr("href")
         if url and url.startswith("http") and url not in seen_urls:
-            urls.append(url)
             waitting_urls.append(url)
 
 
-async def init_urls(url, session):
-    html = await fetch(url, session)
-    seen_urls.add(url)
+async def init_urls(start_url, session):
+    html = await fetch(start_url, session)
+    seen_urls.add(start_url)
     extract_urls(html)
 
 
 async def consumer(pool):
+    """读取waiting_url, 完成抓取任务。"""
     async with aiohttp.ClientSession() as session:
         while not stopping:
+            # 为空时休息0.5秒。
             if len(waitting_urls) == 0:
                 await asyncio.sleep(0.5)
                 continue
