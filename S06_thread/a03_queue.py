@@ -38,7 +38,7 @@ class MiddleHandleThread(threading.Thread):
             if self.q_1.qsize() > 10 and self.q_2.qsize() < 50:
                 # q_1中的任务多于10个, 并且q_2未满时，开始处理
                 data = self.q_1.get()
-                self.q_1.task_done()
+                self.q_1.task_done()  # TODO: 到底如何配合join使用？？？
                 print("开始处理-{}".format(data))
                 res_data = str(data) + "aaa"
 
@@ -89,8 +89,8 @@ def main():
     q_2.join()
 
     print("==2==", threading.enumerate())
-    # c_thread.join()
-    # write_handle.close()
+    c_thread.join()
+    write_handle.close()
 
 
 if __name__ == '__main__':
